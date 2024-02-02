@@ -36,7 +36,7 @@
 
 // --- Global variables ---
 // Version only change the "vN.M" part if needed.
-const char *OBSVersion = "v0.18" BUILD_NUMBER;
+const char *OBSVersion = "v0.19" BUILD_NUMBER;
 
 const uint8_t LEFT_SENSOR_ID = 1;
 const uint8_t RIGHT_SENSOR_ID = 0;
@@ -541,8 +541,12 @@ void loop() {
     delete dataset;
   }
 
-  if (transmitConfirmedData) {
-    // After confirmation make sure it will be written to SD card directly
+  // After confirmation make sure it will be written to SD card directly
+  if (transmitConfirmedData ||
+    // also write if we are inside a privacy area ...
+    (currentSet->isInsidePrivacyArea
+    // ... and privacy mode does not require to write all sets
+      && (config.privacyConfig & AbsolutePrivacy) || (config.privacyConfig & OverridePrivacy))) {
     // so no confirmed sets might be lost
     if (writer) {
       writer->flush();
